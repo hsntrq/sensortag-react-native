@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Text, View, Alert, TouchableOpacity } from 'react-native';
 
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3 } from 'aws-sdk';
 
 import { MMKV } from 'react-native-mmkv';
 
@@ -43,6 +43,8 @@ export default DeviceConnectedScreen = ({
   const [recording, setRecording] = useState(false);
   const [notificationSub, setNotificationSub] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [connected, setConnected] = useState(false);
+  const [timerInterval, setTimerInterval] = useState(null);
 
   let subscription;
   const connectToDevice = async () => {
@@ -52,6 +54,7 @@ export default DeviceConnectedScreen = ({
       setConnectionState(`Discovering ${sensorTag.name} (${sensorTag.id})`);
       await sensorTag.discoverAllServicesAndCharacteristics();
       setConnectionState(`Connected to ${sensorTag.name} (${sensorTag.id})`);
+      setConnected(true);
       subscription = sensorTag.onDisconnected(err => {
         if (err) console.error('Error while disconnecting:', err);
       });
@@ -71,14 +74,15 @@ export default DeviceConnectedScreen = ({
   }, []);
 
   useEffect(() => {
-    let interval = null;
-
     if (recording) {
-      interval = setInterval(() => {
-        setTime(time => time + 1);
-      }, 1000);
-    } else clearInterval(interval);
-    return () => clearInterval(interval);
+      setTime(0);
+      setTimerInterval(
+        setInterval(() => {
+          setTime(time => time + 1);
+        }, 1000),
+      );
+    } else clearInterval(timerInterval);
+    return () => clearInterval(timerInterval);
   }, [recording]);
 
   const setupNotifications = async (device, path) => {
@@ -176,7 +180,7 @@ export default DeviceConnectedScreen = ({
     <View style={{ padding: 10 }}>
       <View style={{ flexDirection: 'row', paddingTop: 5 }}>
         <Button
-          disabled={uploading}
+          disabled={uploading || !connected}
           style={{ flex: 1 }}
           onPress={async () => {
             if (!recording) {
@@ -229,18 +233,20 @@ export default DeviceConnectedScreen = ({
             const fileName = path.split('/').pop();
             const data = await FS.ReadFile(path);
             if (!data) return Alert.alert('Error', 'Could not read file');
-            const client = new S3Client({region: 'me-central-1'});
-            const command = new PutObjectCommand({
+            const s3 = new S3({
+              region: 'me-central-1',
+              accessKeyId: 'accessKeyId',
+              secretAccessKey: 'secretAccessKey',
+            });
+            const params = {
               Bucket: 'sensortagdata',
               Key: fileName,
               Body: data,
-            });
-            try {
-              const res = await client.send(command);
-              console.log(res);
-            } catch (err) {
-              console.error(err);
-            }
+            };
+            s3.putObject(params)
+              .promise()
+              .catch(err => Alert.alert('Error', err.message))
+              .then(res => Alert.alert('Success', 'File Uploaded'));
           }}
           title={'Send to Cloud'}
         />
@@ -279,12 +285,12 @@ export default DeviceConnectedScreen = ({
           <Text style={styles.logTextStyle}>
             {`Mag: ${magnotometer?.x}\t${magnotometer?.y}\t${magnotometer?.z}`}
           </Text>
-          <Text
-            style={styles.logTextStyle}>{`Hum: ${humidity?.toFixed(2)}`}</Text>
-          <Text
-            style={
-              styles.logTextStyle
-            }>{`Tem: ${temperature?.toFixed(2)}`}</Text>
+          <Text style={styles.logTextStyle}>{`Hum: ${humidity?.toFixed(
+            2,
+          )}`}</Text>
+          <Text style={styles.logTextStyle}>{`Tem: ${temperature?.toFixed(
+            2,
+          )}`}</Text>
           <Text style={styles.logTextStyle}>{`Lux: ${light}`}</Text>
           <Text style={styles.logTextStyle}>{`Ps: ${pressure}`}</Text>
         </View>
