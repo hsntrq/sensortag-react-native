@@ -1,0 +1,38 @@
+[
+  {
+    "id": "2",
+    "title": "Humidity",
+    "serviceUUID": "f000aa20-0451-4000-b000-000000000000",
+    "notifyUUID": "f000aa21-0451-4000-b000-000000000000",
+    "writeUUID": "f000aa22-0451-4000-b000-000000000000",
+    "periodUUID": "f000aa23-0451-4000-b000-000000000000",
+    "base64EncodeChar": "AQ=="
+  },
+  {
+    "id": "4",
+    "title": "Pressure",
+    "serviceUUID": "f000aa40-0451-4000-b000-000000000000",
+    "notifyUUID": "f000aa41-0451-4000-b000-000000000000",
+    "writeUUID": "f000aa42-0451-4000-b000-000000000000",
+    "periodUUID": "f000aa44-0451-4000-b000-000000000000",
+    "base64EncodeChar": "AQ=="
+  },
+  {
+    "id": "7",
+    "title": "Light",
+    "serviceUUID": "f000aa70-0451-4000-b000-000000000000",
+    "notifyUUID": "f000aa71-0451-4000-b000-000000000000",
+    "writeUUID": "f000aa72-0451-4000-b000-000000000000",
+    "periodUUID": "f000aa73-0451-4000-b000-000000000000",
+    "base64EncodeChar": "AQ=="
+  },
+  {
+    "id": "8",
+    "title": "Accelerometer",
+    "serviceUUID": "f000aa80-0451-4000-b000-000000000000",
+    "notifyUUID": "f000aa81-0451-4000-b000-000000000000",
+    "writeUUID": "f000aa82-0451-4000-b000-000000000000",
+    "periodUUID": "f000aa83-0451-4000-b000-000000000000",
+    "base64EncodeChar": "fwA="
+  }
+]
