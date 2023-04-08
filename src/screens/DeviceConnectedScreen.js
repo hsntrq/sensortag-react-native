@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Text, View, Alert, TouchableOpacity } from 'react-native';
 
+import Config from 'react-native-config';
+
 import { S3 } from 'aws-sdk';
 
 import { MMKV } from 'react-native-mmkv';
@@ -234,19 +236,19 @@ export default DeviceConnectedScreen = ({
             const data = await FS.ReadFile(path);
             if (!data) return Alert.alert('Error', 'Could not read file');
             const s3 = new S3({
-              region: 'me-central-1',
-              accessKeyId: 'accessKeyId',
-              secretAccessKey: 'secretAccessKey',
+              region: Config.region,
+              accessKeyId: Config.accessKeyId,
+              secretAccessKey: Config.secretAccessKey,
             });
             const params = {
-              Bucket: 'sensortagdata',
+              Bucket: Config.bucketName,
               Key: fileName,
               Body: data,
             };
             s3.putObject(params)
               .promise()
+              .then(res => Alert.alert('Success', 'File Uploaded'))
               .catch(err => Alert.alert('Error', err.message))
-              .then(res => Alert.alert('Success', 'File Uploaded'));
           }}
           title={'Send to Cloud'}
         />
