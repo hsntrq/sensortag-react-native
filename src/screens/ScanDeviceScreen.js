@@ -17,7 +17,8 @@ export default ScanDeviceScreen = ({ setSensorTag, setConnectionState }) => {
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    bleManager.enable();
+    enableBLE = async () => await bleManager.enable();
+    enableBLE();
     onRefresh();
     return () => {};
   }, []);
