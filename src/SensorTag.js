@@ -45,7 +45,7 @@ const requestPermissions = async () => {
       if (!Object.values(granted).every(val => val === 'granted')) {
         Alert.alert(
           'Permissions not granted',
-          'Please restart tbe app and allow permissions for bluetooth, thnx.',
+          'Please restart tbe app and allow permissions',
           [],
           { cancelable: true },
         );

@@ -42,9 +42,9 @@ export const DeleteFile = async path => {
     });
 };
 export const CopyFile = async path => {
-  const dst = `${RNFS.ExternalDirectoryPath}/fyp/${path.split('/').pop()}`;
+  const dst = `${RNFS.DownloadDirectoryPath}/fyp/${path.split('/').pop()}`;
   // console.log(dst);
-  await RNFS.mkdir(`${RNFS.ExternalDirectoryPath}/fyp/`).catch(err => {
+  await RNFS.mkdir(`${RNFS.DownloadDirectoryPath}/fyp/`).catch(err => {
     console.error(err);
   });
   await RNFS.copyFile(path, dst)

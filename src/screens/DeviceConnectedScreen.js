@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Text, View, Alert, TouchableOpacity } from 'react-native';
+import {
+  Text,
+  View,
+  Alert,
+  TouchableOpacity,
+  PermissionsAndroid,
+} from 'react-native';
 
 import Config from 'react-native-config';
 
@@ -213,6 +219,15 @@ export default DeviceConnectedScreen = ({
           onPress={async () => {
             setUploading(true);
             setConnectionState('Saving Locally...');
+            const granted = await PermissionsAndroid.request(
+              PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+            );
+            if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+              Alert.alert('Error', 'Could not get permission to save file');
+              return;
+            }
+
+            
             const dst = await FS.CopyFile(path);
             if (dst)
               Alert.alert(
@@ -248,7 +263,7 @@ export default DeviceConnectedScreen = ({
             s3.putObject(params)
               .promise()
               .then(res => Alert.alert('Success', 'File Uploaded'))
-              .catch(err => Alert.alert('Error', err.message))
+              .catch(err => Alert.alert('Error', err.message));
           }}
           title={'Send to Cloud'}
         />
