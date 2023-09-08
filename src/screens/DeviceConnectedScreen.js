@@ -17,6 +17,8 @@ import styles from '../styles';
 import * as FS from '../services/fileHandling';
 import dataHandler from '../services/dataHandling';
 import ids from '../services/characteristics.json';
+// import { LineChartLive } from './LineChart';
+import { LineChart, Grid } from 'react-native-svg-charts';
 
 const storage = new MMKV();
 
@@ -40,6 +42,7 @@ export default DeviceConnectedScreen = ({
   setConnectionState,
 }) => {
   const [acceleremeter, setAcceleremeter] = useState({});
+  const [azList, setAzList] = useState([]);
   const [gyroscope, setGyroscope] = useState({});
   const [magnotometer, setMagnetometer] = useState({});
   const [light, setLight] = useState(null);
@@ -134,7 +137,7 @@ export default DeviceConnectedScreen = ({
   };
 
   const setData = async (id, rawData, path) => {
-    const data = await dataHandler(id, rawData);
+    const data = dataHandler(id, rawData);
     if (data !== null) {
       switch (id) {
         case '8':
@@ -142,20 +145,28 @@ export default DeviceConnectedScreen = ({
           const Gyr = { x: data.gx, y: data.gy, z: data.gz };
           const Mag = { x: data.mx, y: data.my, z: data.mz };
           setAcceleremeter(Acc);
+          // console.log(data.az);
+          // setAzList(prevState => [...prevState, Number(data.az)].slice(-16));
           setGyroscope(Gyr);
           setMagnetometer(Mag);
-          const hum = await storage.getNumber('humidity');
-          const pre = await storage.getNumber('pressure');
-          const lig = await storage.getNumber('light');
-          const temp = await storage.getNumber('temperature');
-          await FS.AppendtoFile(
-            `${new Date().getTime()},${data.ax},${data.ay},${data.az},${
-              data.gx
-            },${data.gy},${data.gz},${data.mx},${data.my},${
-              data.mz
-            },${hum},${pre},${lig},${temp}\n`,
-            path,
-          );
+          const hum = storage.getNumber('humidity');
+          const pre = storage.getNumber('pressure');
+          const lig = storage.getNumber('light');
+          const temp = storage.getNumber('temperature');
+          const prevData = storage.getString('data');
+          storage.set('data',`${prevData}${new Date().getTime()},${data.ax},${data.ay},${data.az},${
+                data.gx
+              },${data.gy},${data.gz},${data.mx},${data.my},${
+                data.mz
+              },${hum},${pre},${lig},${temp}\n`)
+          // await FS.AppendtoFile(
+          //   `${new Date().getTime()},${data.ax},${data.ay},${data.az},${
+          //     data.gx
+          //   },${data.gy},${data.gz},${data.mx},${data.my},${
+          //     data.mz
+          //   },${hum},${pre},${lig},${temp}\n`,
+          //   path,
+          // );
           break;
         case '2':
           setHumidity(data.hum);
@@ -192,12 +203,17 @@ export default DeviceConnectedScreen = ({
           style={{ flex: 1 }}
           onPress={async () => {
             if (!recording) {
+              storage.set('data', '');
               const newPath = await FS.pathReturn();
               setPath(newPath);
               console.log(newPath);
               await FS.WritetoFile(newPath);
               setupNotifications(sensorTag, newPath);
-            } else notificationSub.forEach(sub => sub?.remove());
+            } else {
+              notificationSub.forEach(sub => sub?.remove());
+              const storageData = storage.getString('data');
+              await FS.AppendtoFile(storageData, path);
+            }
             setRecording(~recording);
           }}
           title={`${recording ? 'Stop' : 'Start'} Study`}
@@ -310,6 +326,14 @@ export default DeviceConnectedScreen = ({
           )}`}</Text>
           <Text style={styles.logTextStyle}>{`Lux: ${light}`}</Text>
           <Text style={styles.logTextStyle}>{`Ps: ${pressure}`}</Text>
+          <LineChart
+            style={{ height: 200 }}
+            data={azList}
+            svg={{ stroke: '#36B9CC', strokeWidth: 2 }}
+            contentInset={{ top: 20, bottom: 20 }}
+          >
+            <Grid />
+          </LineChart>
         </View>
       ) : (
         <></>
