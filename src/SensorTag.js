@@ -33,20 +33,20 @@ const requestPermissions = async () => {
       )) &&
       (await PermissionsAndroid.check(
         PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
-        )) &&
-        (await PermissionsAndroid.check(
-          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-        )) &&
-        (await PermissionsAndroid.check(
-          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-        ));
+      ));
+      // (await PermissionsAndroid.check(
+      //   PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+      // )) &&
+      // (await PermissionsAndroid.check(
+      //   PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+      // ));
     if (!enabled) {
       const granted = await PermissionsAndroid.requestMultiple([
         PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
         PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
         PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
-        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+        // PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+        // PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
       ]);
       if (!Object.values(granted).every(val => val === 'granted')) {
         Alert.alert(
