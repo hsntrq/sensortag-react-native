@@ -7,8 +7,6 @@ import {
   PermissionsAndroid,
 } from 'react-native';
 
-import Config from 'react-native-config';
-
 import { S3 } from 'aws-sdk';
 
 import { MMKV } from 'react-native-mmkv';
@@ -17,7 +15,6 @@ import styles from '../styles';
 import * as FS from '../services/fileHandling';
 import dataHandler from '../services/dataHandling';
 import ids from '../services/characteristics.json';
-// import { LineChartLive } from './LineChart';
 import { LineChart, Grid } from 'react-native-svg-charts';
 
 const storage = new MMKV();
@@ -40,6 +37,7 @@ export default DeviceConnectedScreen = ({
   sensorTag,
   setSensorTag,
   setConnectionState,
+  secretStorage,
 }) => {
   const [acceleremeter, setAcceleremeter] = useState({});
   const [azList, setAzList] = useState([]);
@@ -154,11 +152,14 @@ export default DeviceConnectedScreen = ({
           const lig = storage.getNumber('light');
           const temp = storage.getNumber('temperature');
           const prevData = storage.getString('data');
-          storage.set('data',`${prevData}${new Date().getTime()},${data.ax},${data.ay},${data.az},${
-                data.gx
-              },${data.gy},${data.gz},${data.mx},${data.my},${
-                data.mz
-              },${hum},${pre},${lig},${temp}\n`)
+          storage.set(
+            'data',
+            `${prevData}${new Date().getTime()},${data.ax},${data.ay},${
+              data.az
+            },${data.gx},${data.gy},${data.gz},${data.mx},${data.my},${
+              data.mz
+            },${hum},${pre},${lig},${temp}\n`,
+          );
           // await FS.AppendtoFile(
           //   `${new Date().getTime()},${data.ax},${data.ay},${data.az},${
           //     data.gx
@@ -235,15 +236,18 @@ export default DeviceConnectedScreen = ({
           onPress={async () => {
             setUploading(true);
             setConnectionState('Saving Locally...');
-            const granted = await PermissionsAndroid.request(
-              PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-            );
-            if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-              Alert.alert('Error', 'Could not get permission to save file');
-              return;
-            }
+            // const granted = await PermissionsAndroid.request(
+            //   PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+            // );
+            // if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+            //   Alert.alert('Error', 'Could not get permission to save file');
+            //   setConnectionState(
+            //     `Connected to ${sensorTag.name} (${sensorTag.id})`,
+            //   );
+            //   setUploading(false);
+            //   return;
+            // }
 
-            
             const dst = await FS.CopyFile(path);
             if (dst)
               Alert.alert(
@@ -267,18 +271,18 @@ export default DeviceConnectedScreen = ({
             const data = await FS.ReadFile(path);
             if (!data) return Alert.alert('Error', 'Could not read file');
             const s3 = new S3({
-              region: Config.region,
-              accessKeyId: Config.accessKeyId,
-              secretAccessKey: Config.secretAccessKey,
+              region: secretStorage.getString('region'),
+              accessKeyId: secretStorage.getString('accessKey'),
+              secretAccessKey: secretStorage.getString('secretKey'),
             });
             const params = {
-              Bucket: Config.bucketName,
+              Bucket: secretStorage.getString('bucket'),
               Key: fileName,
               Body: data,
             };
             s3.putObject(params)
               .promise()
-              .then(res => Alert.alert('Success', 'File Uploaded'))
+              .then(res => Alert.alert('Success', `File Uploaded: ${fileName}`))
               .catch(err => Alert.alert('Error', err.message));
           }}
           title={'Send to Cloud'}
@@ -330,8 +334,7 @@ export default DeviceConnectedScreen = ({
             style={{ height: 200 }}
             data={azList}
             svg={{ stroke: '#36B9CC', strokeWidth: 2 }}
-            contentInset={{ top: 20, bottom: 20 }}
-          >
+            contentInset={{ top: 20, bottom: 20 }}>
             <Grid />
           </LineChart>
         </View>
